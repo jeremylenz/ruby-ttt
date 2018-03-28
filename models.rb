@@ -26,10 +26,10 @@ class GameBoard
   def set_diag_coordinates
     row = 0
     col = 0
-    last = @num_rows_cols
+    last = @num_rows_cols - 1
     diag_0 = []
     diag_1 = []
-    while row < last
+    while row <= last
       diag_0 << [row, col]
       diag_1 << [last - row, col]
       row += 1
@@ -52,7 +52,8 @@ class GameBoard
 
   def center_square?(row, col)
     coords = [row, col]
-    @diag_0_coords.include?(coords) && @diag_1_coords.include?(coords)
+    cs = @diag_0_coords.include?(coords) && @diag_1_coords.include?(coords)
+    cs
   end
 
 
@@ -110,6 +111,15 @@ class GameBoard
       move_rating(move, player)
     end
     puts ratings.inspect
+    rc_scores =  moves.map do |move|
+      {
+        move: move,
+        row: row_score(move[0], player),
+        col: col_score(move[1], player),
+        diag: diag_score(diag_num(move[0], move[1]), player)
+      }
+    end
+    puts rc_scores.inspect
     idx = ratings.find_index(ratings.max)
     moves[idx]
   end
@@ -149,6 +159,10 @@ class GameBoard
     rating += row_score(row, player)
     rating += col_score(col, player)
     rating += diag_score(diag, player)
+    if center_square?(row, col)
+      rating += 2
+      puts 'center square'
+    end
     rating += 2 if !win_possible?(row, col, other_player(player))
     rating += weight if would_prevent_other_player_win?(row, col, player)
     rating += 98 if would_win?(row, col, player)
@@ -170,8 +184,8 @@ class GameBoard
   end
 
   def line_score(line, player)
-    score = line.count(player)
-    score = 0 if line.count(other_player(player)) > 0
+    score = line.count(player) + 1  # start with a score of 1 + however many X's or O's are already there
+    score = 0 if line.count(other_player(player)) > 0  # not a good idea to play in the row if you can't win
     score
   end
 
