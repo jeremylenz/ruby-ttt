@@ -164,7 +164,7 @@ class GameBoard
     rating += foil_opponent_plans_score(row, col, player)
 
     if center_square?(row, col)
-      rating += 2
+      rating += diag_score(1, player)  # the center square will only register as being in the 0 diagonal; we must manually account for the second diagonal
       # puts 'center square'
     end
     # rating += 2 if !win_possible?(row, col, other_player(player))

@@ -40,8 +40,8 @@ class Game
       puts "Sadly, it's no longer possible for #{@whose_turn} to win."
     end
     # puts @board.possible_moves.map { |m| format_input(m) }.inspect
-    puts format_input(@board.best_move(@whose_turn)).inspect
-    puts "Enter move (row, col); C = choose for me; Q = quit:"
+    puts "Best move: ", format_input(@board.best_move(@whose_turn)).inspect
+    puts "Enter move (row, col); C = accept choice; R = random move; Q = quit:"
   end
 
   def get_input
@@ -56,6 +56,9 @@ class Game
     when "Q"
       self.end_game
       return false
+    when "R"
+      move = @board.possible_moves.sample
+      move = format_input(move)
     else
       row = user_input[0].to_i
       col = user_input[1].to_i
