@@ -12,46 +12,58 @@ class Game
     else
       @board = GameBoard.new(size.to_i)
     end
+    @game_ended = false
     @whose_turn = 'X'
   end
 
   def start_game
     system "clear"
     Hashtag.draw(@board)
-    until @board.winner
+    until @board.winner || @game_ended
+      display_info
       next_move = get_input
       system "clear"
-      do_move(next_move)
+      do_move(next_move) if next_move
       Hashtag.draw(@board)
     end
-    puts "Winner: #{@board.winner}"
+    if @game_ended
+      puts "Game ended by user"
+    else
+      puts "Winner: #{@board.winner}"
+    end
     puts "Thanks for playing!"
   end
 
-  def get_input
+  def display_info
     puts "Current turn: #{@whose_turn}"
     if !@board.possible_to_win?(@whose_turn)
       puts "Sadly, it's no longer possible for #{@whose_turn} to win."
     end
-    puts @board.possible_moves.map { |m| format_input(m) }.inspect
+    # puts @board.possible_moves.map { |m| format_input(m) }.inspect
     puts format_input(@board.best_move(@whose_turn)).inspect
-    puts "Enter move (row, col) or C for computer:"
-    user_input = gets.chomp.split(',')
-    get_input if !user_input[0]
-    if user_input[0].upcase == "C"
-      move = @board.best_move(@whose_turn)
-      move = format_input(move)
-    end
-    # if user_input[0].upcase == "Q"
-    #   @board.end_game
-    # end
-    pry if user_input[0].upcase == "P"
-    row = user_input[0].to_i
-    col = user_input[1].to_i
-    move ? move : [row, col]
+    puts "Enter move (row, col); C = choose for me; Q = quit:"
   end
 
-  def format_input(move)
+  def get_input
+    user_input = gets.chomp.split(',')
+    return false if !user_input[0]
+    case user_input[0].upcase
+    when "C"
+      move = @board.best_move(@whose_turn)
+      move = format_input(move)
+    when "P"
+      pry
+    when "Q"
+      self.end_game
+      return false
+    else
+      row = user_input[0].to_i
+      col = user_input[1].to_i
+      move ? move : [row, col]
+    end
+  end
+
+  def format_input(move)  #turns 0-indexed coords into 1-indexed coords
     if move
       [move[0] + 1, move[1] + 1]
     end
@@ -69,6 +81,10 @@ class Game
 
   def next_player
     @whose_turn == 'X' ? @whose_turn = 'O' : @whose_turn = 'X'
+  end
+
+  def end_game
+    @game_ended = true
   end
 
 end

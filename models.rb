@@ -110,16 +110,18 @@ class GameBoard
     ratings = moves.map do |move|
       move_rating(move, player)
     end
-    puts ratings.inspect
+    # puts ratings.inspect
     rc_scores =  moves.map do |move|
       {
-        move: move,
+        move: [move[0] + 1, move[1] + 1],
         row: row_score(move[0], player),
         col: col_score(move[1], player),
-        diag: diag_score(diag_num(move[0], move[1]), player)
+        diag: diag_score(diag_num(move[0], move[1]), player),
+        prevent: would_prevent_other_player_win?(move[0], move[1], player),
+        foil: foil_opponent_plans_score(move[0], move[1], player)
       }
     end
-    puts rc_scores.inspect
+    # puts rc_scores.inspect
     idx = ratings.find_index(ratings.max)
     moves[idx]
   end
@@ -159,11 +161,13 @@ class GameBoard
     rating += row_score(row, player)
     rating += col_score(col, player)
     rating += diag_score(diag, player)
+    rating += foil_opponent_plans_score(row, col, player)
+
     if center_square?(row, col)
       rating += 2
-      puts 'center square'
+      # puts 'center square'
     end
-    rating += 2 if !win_possible?(row, col, other_player(player))
+    # rating += 2 if !win_possible?(row, col, other_player(player))
     rating += weight if would_prevent_other_player_win?(row, col, player)
     rating += 98 if would_win?(row, col, player)
     rating
@@ -171,16 +175,16 @@ class GameBoard
   end
 
   def row_win_possible?(row_num, player)
-    row_score(row_num, other_player(player)) == 0
+    row_score(row_num, other_player(player)) <= 1
   end
 
   def col_win_possible?(col_num, player)
-    col_score(col_num, other_player(player)) == 0
+    col_score(col_num, other_player(player)) <= 1
   end
 
   def diagonal_win_possible?(diag_num, player)
     return false if !diag_num
-    diag_score(diag_num, other_player(player)) == 0
+    diag_score(diag_num, other_player(player)) <= 1
   end
 
   def line_score(line, player)
@@ -217,10 +221,19 @@ class GameBoard
     mock_board.winner == player
   end
 
+  def foil_opponent_plans_score(row, col, player)
+    opponent = other_player(player)
+    coord_diag_num = diag_num(row, col)
+    score = 1 # slight weight in favor of defense as opposed to offense
+    score += row_score(row, opponent) if row_win_possible?(row, opponent)
+    score += col_score(col, opponent) if col_win_possible?(col, opponent)
+    score += diag_score(coord_diag_num, opponent) if diagonal_win_possible?(coord_diag_num, opponent)
+    score
+  end
+
   def would_prevent_other_player_win?(row, col, player)
-    mock_board = GameBoard.new(@num_rows_cols, @rows)
-    mock_board.move(other_player(player), row+1, col+1)
-    mock_board.winner == other_player(player)
+    opponent = other_player(player)
+    would_win?(row, col, opponent)
   end
 
 
