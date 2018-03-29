@@ -6,12 +6,7 @@ class Game
   def initialize
     puts 'Enter board size (3 to 8): '
     size = gets.chomp
-    if size.upcase == 'R'
-      @board = GameBoard.new(rand(3..8))
-      @board.random
-    else
-      @board = GameBoard.new(size.to_i)
-    end
+    @board = GameBoard.new(size.to_i)
     @game_ended = false
     @whose_turn = 'X'
   end

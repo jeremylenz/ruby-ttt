@@ -22,7 +22,6 @@ class GameBoard
     end
   end
 
-
   def set_diag_coordinates
     row = 0
     col = 0
@@ -39,6 +38,8 @@ class GameBoard
     @diag_1_coords = diag_1
   end
 
+  # Orientation / describing the board
+
   def diag_num(row, col)
     coords = [row, col]
     if @diag_0_coords.include?(coords)
@@ -54,17 +55,6 @@ class GameBoard
     coords = [row, col]
     cs = @diag_0_coords.include?(coords) && @diag_1_coords.include?(coords)
     cs
-  end
-
-
-  def random_move
-    rand(101) > 50 ? 'O' : 'X'
-  end
-
-  def random
-    @rows.each do |row|
-      row.each_with_index { |square, idx| row[idx] = random_move }
-    end
   end
 
   def cols
@@ -90,7 +80,39 @@ class GameBoard
     diags
   end
 
+  def winner
+    x_win = false
+    o_win = false
+    # check horizontal
+    winning_x_row = Array.new(@num_rows_cols){'X'}
+    winning_o_row = Array.new(@num_rows_cols){'O'}
+    @rows.each do |row|
+      x_win = true if row == winning_x_row
+      o_win = true if row == winning_o_row
+    end
+    # check vertical
+    self.cols.each do |col|
+      x_win = true if col == winning_x_row
+      o_win = true if col == winning_o_row
+    end
+    # check diagonals
+    self.diagonals.each do |diag|
+      x_win = true if diag == winning_x_row
+      o_win = true if diag == winning_o_row
+    end
+    # return winner
+    if x_win
+      "X"
+    elsif o_win
+      "O"
+    elsif board_full
+      "None"
+    else
+      false
+    end
+  end
 
+  # Altering the board
 
   def move (mark, row, col)
     # mark = 'X' or 'O'
@@ -104,6 +126,8 @@ class GameBoard
     end
     # display_board(self)
   end
+
+  # Strategy / logic
 
   def best_move(player)
     moves = possible_moves
@@ -162,12 +186,10 @@ class GameBoard
     rating += col_score(col, player)
     rating += diag_score(diag, player)
     rating += foil_opponent_plans_score(row, col, player)
-
     if center_square?(row, col)
       rating += diag_score(1, player)  # the center square will only register as being in the 0 diagonal; we must manually account for the second diagonal
       # puts 'center square'
     end
-    # rating += 2 if !win_possible?(row, col, other_player(player))
     rating += weight if would_prevent_other_player_win?(row, col, player)
     rating += 98 if would_win?(row, col, player)
     rating
@@ -206,15 +228,6 @@ class GameBoard
     line_score(self.diagonals[diag_num], player)
   end
 
-  def win_possible?(row, col, player)
-    possible = false
-    coord_diag_num = diag_num(row, col)
-    possible = true if row_win_possible?(row, player) || col_win_possible?(col, player)
-    possible = true if diagonal_win_possible?(coord_diag_num, player)
-    possible = true if center_square?(row, col) && diagonal_win_possible?(1, player)
-    possible
-  end
-
   def would_win?(row, col, player)
     mock_board = GameBoard.new(@num_rows_cols, @rows)
     mock_board.move(player, row+1, col+1)
@@ -236,44 +249,6 @@ class GameBoard
     would_win?(row, col, opponent)
   end
 
-
-  def winner
-    x_win = false
-    o_win = false
-    # check horizontal
-    winning_x_row = Array.new(@num_rows_cols){'X'}
-    winning_o_row = Array.new(@num_rows_cols){'O'}
-    @rows.each do |row|
-      x_win = true if row == winning_x_row
-      o_win = true if row == winning_o_row
-    end
-    # check vertical
-    self.cols.each do |col|
-      x_win = true if col == winning_x_row
-      o_win = true if col == winning_o_row
-    end
-    # check diagonals
-    self.diagonals.each do |diag|
-      x_win = true if diag == winning_x_row
-      o_win = true if diag == winning_o_row
-    end
-    # return winner
-    if x_win
-      "X"
-    elsif o_win
-      "O"
-    elsif board_full
-      "None"
-    else
-      false
-    end
-
-  end
-
-
-
-
-
   private
 
   def other_player(player)
@@ -287,8 +262,7 @@ class GameBoard
   def validation_passed?(num)
     num = num.to_i
     unless num >= 3 && num <= 8
-      puts 'validation failed'
-      puts num
+      puts "didn't understand that size; setting to 3"
       gets
       return false
     else
@@ -316,9 +290,3 @@ class GameBoard
 
 
 end # of class
-
-# def display_board(board)
-#   board.rows.each do |row|
-#     puts row.join(' ')
-#   end
-# end
