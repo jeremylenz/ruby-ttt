@@ -59,9 +59,9 @@ class GameBoard
 
   def cols
     cols = []
-    @num_rows_cols.times do |t|
-      cols << @rows.map do |j|
-        j[t]
+    @num_rows_cols.times do |idx|
+      cols << @rows.map do |row|
+        row[idx]
       end
     end
     cols
@@ -83,9 +83,9 @@ class GameBoard
   def winner
     x_win = false
     o_win = false
-    # check horizontal
     winning_x_row = Array.new(@num_rows_cols){'X'}
     winning_o_row = Array.new(@num_rows_cols){'O'}
+    # check horizontal
     @rows.each do |row|
       x_win = true if row == winning_x_row
       o_win = true if row == winning_o_row
@@ -135,22 +135,22 @@ class GameBoard
       move_rating(move, player)
     end
     # puts ratings.inspect
-    rc_scores =  moves.map do |move|
-      {
-        move: [move[0] + 1, move[1] + 1],
-        row: row_score(move[0], player),
-        col: col_score(move[1], player),
-        diag: diag_score(diag_num(move[0], move[1]), player),
-        prevent: would_prevent_other_player_win?(move[0], move[1], player),
-        foil: foil_opponent_plans_score(move[0], move[1], player)
-      }
-    end
+    # rc_scores =  moves.map do |move|
+    #   {
+    #     move: [move[0] + 1, move[1] + 1],
+    #     row: row_score(move[0], player),
+    #     col: col_score(move[1], player),
+    #     diag: diag_score(diag_num(move[0], move[1]), player),
+    #     prevent: would_prevent_other_player_win?(move[0], move[1], player),
+    #     foil: foil_opponent_plans_score(move[0], move[1], player)
+    #   }
+    # end
     # puts rc_scores.inspect
     idx = ratings.find_index(ratings.max)
     moves[idx]
   end
 
-  def possible_moves
+  def possible_moves  # in other words, a list of unoccupied (nil) squares
     possible_moves = []
     @rows.each_with_index do |squares, row_num|
       possible_moves << squares.map.with_index { |e, col_num| e == nil ? [row_num, col_num] : nil }.compact
@@ -162,7 +162,6 @@ class GameBoard
     # fill in entire board with X's or O's
     # see if the board is winning
     new_rows = Array.new(@rows)
-
     mock_board = GameBoard.new(@num_rows_cols, new_rows)
     mock_board.possible_moves.each do |move|
       mock_board.move(player, move[0] + 1, move[1] + 1)
@@ -193,7 +192,6 @@ class GameBoard
     rating += weight if would_prevent_other_player_win?(row, col, player)
     rating += 98 if would_win?(row, col, player)
     rating
-
   end
 
   def row_win_possible?(row_num, player)
@@ -287,6 +285,5 @@ class GameBoard
       nil
     end
   end
-
 
 end # of class
