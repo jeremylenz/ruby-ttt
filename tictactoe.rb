@@ -1,6 +1,6 @@
 require './models.rb'
 require './views.rb'
-require 'pry'
+# require 'pry'
 class Game
 
   def initialize
@@ -47,7 +47,7 @@ class Game
       move = @board.best_move(@whose_turn)
       move = format_input(move)
     when "P"
-      pry
+      # pry
     when "Q"
       self.end_game
       return false
